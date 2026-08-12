@@ -5,6 +5,7 @@ on:
     branches: [main, master]
     tags: ["v*"]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   linux:
@@ -54,7 +55,9 @@ jobs:
         env:
           ARCH: x86_64
         run: |
-          wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          curl -fL --retry 5 --retry-all-errors --retry-delay 3 \
+            -o appimagetool-x86_64.AppImage \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           ./appimagetool-x86_64.AppImage --no-appstream AppDir Snowboard_Rush-x86_64.AppImage
 
@@ -77,8 +80,10 @@ jobs:
 
       - name: Download raylib (MinGW)
         run: |
-          wget -q https://github.com/raysan5/raylib/releases/download/5.5/raylib-5.5_win64_mingw-w64.zip
-          unzip -q raylib-5.5_win64_mingw-w64.zip
+          curl -fL --retry 5 --retry-all-errors --retry-delay 3 \
+            -o raylib.zip \
+            https://github.com/raysan5/raylib/releases/download/5.5/raylib-5.5_win64_mingw-w64.zip
+          unzip -q raylib.zip
           echo "RAYLIB_DIR=$PWD/raylib-5.5_win64_mingw-w64" >> "$GITHUB_ENV"
 
       - name: Build game
@@ -99,3 +104,23 @@ jobs:
         with:
           name: Snowboard_Rush-Windows-x86_64.zip
           path: Snowboard_Rush-Windows-x86_64.zip
+
+  release:
+    name: Create GitHub Release
+    needs: [linux, windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/Snowboard_Rush-Linux-x86_64.AppImage/Snowboard_Rush-x86_64.AppImage
+            artifacts/Snowboard_Rush-Windows-x86_64.zip/Snowboard_Rush-Windows-x86_64.zip
