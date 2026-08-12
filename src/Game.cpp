@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 namespace sb {
 
@@ -27,6 +28,21 @@ namespace {
 constexpr Color kSkyBlue = { 132, 190, 235, 255 };
 constexpr Color kSnowWhite = { 240, 246, 252, 255 };
 constexpr Color kTextColor = { 20, 30, 50, 255 };
+
+// Resolve an asset path relative to the executable when possible (so a
+// packaged binary finds its assets no matter where it is launched from),
+// falling back to the compile-time ASSETS_PATH.
+std::string AssetsPath(const char* relative) {
+    static std::string base;
+    if (base.empty()) {
+        const char* exeDir = GetApplicationDirectory();
+        const std::string candidate = std::string(exeDir) + "assets/";
+        base = FileExists((candidate + "models/snowboarder.obj").c_str())
+                   ? candidate
+                   : ASSETS_PATH;
+    }
+    return base + relative;
+}
 } // namespace
 
 void Game::Run() {
@@ -48,20 +64,20 @@ void Game::Run() {
 }
 
 void Game::LoadAssets() {
-    riderModel_ = LoadModel(ASSETS_PATH "models/snowboarder.obj");
-    boardModel_ = LoadModel(ASSETS_PATH "models/snowboard.obj");
-    treeModel_ = LoadModel(ASSETS_PATH "models/pine_tree.obj");
-    rockModel_ = LoadModel(ASSETS_PATH "models/rock.obj");
+    riderModel_ = LoadModel(AssetsPath("models/snowboarder.obj").c_str());
+    boardModel_ = LoadModel(AssetsPath("models/snowboard.obj").c_str());
+    treeModel_ = LoadModel(AssetsPath("models/pine_tree.obj").c_str());
+    rockModel_ = LoadModel(AssetsPath("models/rock.obj").c_str());
     rockModel_.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = { 45, 55, 70, 255 };
-    rampModel_ = LoadModel(ASSETS_PATH "models/ramp.obj");
-    coinModel_ = LoadModel(ASSETS_PATH "models/coin.obj");
+    rampModel_ = LoadModel(AssetsPath("models/ramp.obj").c_str());
+    coinModel_ = LoadModel(AssetsPath("models/coin.obj").c_str());
 
-    barrierModel_ = LoadModel(ASSETS_PATH "models/barrier.obj");
+    barrierModel_ = LoadModel(AssetsPath("models/barrier.obj").c_str());
 
     moundModel_ = LoadModelFromMesh(GenMeshSphere(0.5f, 8, 8));
     moundModel_.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = kSnowWhite;
 
-    markerModel_ = LoadModel(ASSETS_PATH "models/marker.obj");
+    markerModel_ = LoadModel(AssetsPath("models/marker.obj").c_str());
 
     mountainModel_ = LoadModelFromMesh(GenMeshCone(55.0f, 120.0f, 6));
     mountainModel_.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = { 226, 238, 250, 255 };
@@ -76,7 +92,7 @@ void Game::LoadAssets() {
     groundModel_.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = groundTexture_;
 
     // Scroll the snow surface toward the camera to sell the descent.
-    groundShader_ = LoadShader(nullptr, ASSETS_PATH "shaders/ground.fs");
+    groundShader_ = LoadShader(nullptr, AssetsPath("shaders/ground.fs").c_str());
     if (groundShader_.id != 0) {
         groundModel_.materials[0].shader = groundShader_;
         groundOffsetLoc_ = GetShaderLocation(groundShader_, "uOffset");

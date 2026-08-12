@@ -70,10 +70,10 @@ add_executable(snowboard_rush
 
 target_include_directories(snowboard_rush PRIVATE src ${RAYLIB_INCLUDE_DIR})
 
-# Absolute path to the assets directory so the game can find its models when
-# launched from any working directory.
-target_compile_definitions(snowboard_rush PRIVATE
-    ASSETS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
+# Assets are resolved relative to the executable at runtime (see Game.cpp),
+# so ASSETS_PATH is only a fallback. Using a relative path keeps distributed
+# binaries free of build-machine paths.
+target_compile_definitions(snowboard_rush PRIVATE ASSETS_PATH="assets/")
 
 target_link_libraries(snowboard_rush PRIVATE ${RAYLIB_LIBRARY})
 
@@ -83,6 +83,19 @@ if(UNIX AND NOT APPLE)
     find_package(X11 REQUIRED)
     target_link_libraries(snowboard_rush PRIVATE
         OpenGL::GL X11::X11 m pthread dl rt)
+
+    # X11 extensions and ALSA are required when raylib is linked statically;
+    # link them when available (harmless no-op otherwise).
+    find_package(ALSA QUIET)
+    foreach(lib Xrandr Xinerama Xi Xcursor Xxf86vm)
+        find_library(SR_${lib}_LIBRARY ${lib})
+        if(SR_${lib}_LIBRARY)
+            target_link_libraries(snowboard_rush PRIVATE ${SR_${lib}_LIBRARY})
+        endif()
+    endforeach()
+    if(ALSA_FOUND)
+        target_link_libraries(snowboard_rush PRIVATE ${ALSA_LIBRARIES})
+    endif()
 elseif(APPLE)
     find_library(COCOA_LIBRARY Cocoa)
     find_library(IOKIT_LIBRARY IOKit)
@@ -90,6 +103,9 @@ elseif(APPLE)
     target_link_libraries(snowboard_rush PRIVATE
         ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREFOUNDATION_LIBRARY}
         "-framework OpenGL")
+elseif(WIN32)
+    target_link_libraries(snowboard_rush PRIVATE
+        winmm gdi32 opengl32 ws2_32 shell32)
 endif()
 
 # Convenience: copy assets next to the binary so it also runs without the

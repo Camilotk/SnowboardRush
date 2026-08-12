@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Snowboard Rush
+Comment=A downhill snowboarding endless runner
+Exec=snowboard_rush
+Icon=snowboard-rush
+Categories=Game;
+Terminal=false
