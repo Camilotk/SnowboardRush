@@ -1,3 +1,7 @@
+# Snowboard Rush - a downhill snowboarding endless runner.
+# Copyright (C) 2026 Camilo Cunha de Azevedo
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # ramp.obj - Snowboard Rush (flat-shaded, generated)
 mtllib ramp.mtl
 o ramp

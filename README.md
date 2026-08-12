@@ -116,3 +116,17 @@ SnowboardRush/
 - **Assets** — OBJ files are flat-shaded with per-face normals; MTL `Kd`
   colors are read directly by raylib. Ground, snow mounds, mountains, barriers,
   and audio are generated procedurally at startup.
+
+## License
+
+Snowboard Rush is free software licensed under the GNU General Public License,
+version 3 or (at your option) any later version.
+
+```
+SPDX-License-Identifier: GPL-3.0-or-later
+```
+
+Copyright (C) 2026 Camilo Cunha de Azevedo.
+
+See [LICENSE](LICENSE) for the full license text, or
+<https://www.gnu.org/licenses/gpl-3.0.html>.

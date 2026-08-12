@@ -1,3 +1,7 @@
+# Snowboard Rush - a downhill snowboarding endless runner.
+# Copyright (C) 2026 Camilo Cunha de Azevedo
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # coin.mtl - Snowboard Rush
 newmtl coin
 Kd 1.0000 0.7800 0.1000

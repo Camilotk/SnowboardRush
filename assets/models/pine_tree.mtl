@@ -1,3 +1,7 @@
+# Snowboard Rush - a downhill snowboarding endless runner.
+# Copyright (C) 2026 Camilo Cunha de Azevedo
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 # pine_tree.mtl - Snowboard Rush
 newmtl trunk
 Kd 0.4200 0.2600 0.1400
