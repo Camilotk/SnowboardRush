@@ -24,13 +24,16 @@ namespace sb {
 
 class SoundManager {
 public:
-    void Init();
+    void Init(const char* windPath);
     void Shutdown();
 
     void PlayCoin();
     void PlayJump();
     void PlayCrash();
     void PlayRamp();
+
+    // Continuous wind layer: speedT in [0, 1] drives volume.
+    void UpdateWind(float speedT);
 
 private:
     Sound BuildSound(const std::function<float(float, float)>& gen, float seconds);
@@ -39,6 +42,10 @@ private:
     Sound jump_ = {};
     Sound crash_ = {};
     Sound ramp_ = {};
+
+    Music windMusic_ = {};
+    bool windReady_ = false;
+
     bool ready_ = false;
 };
 

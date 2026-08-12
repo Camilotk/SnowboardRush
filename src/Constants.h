@@ -56,6 +56,13 @@ constexpr float CARVE_SCRUB = 0.02f;        // speed loss per unit steer input
 constexpr float SNOW_SCRUB = 8.0f;          // speed loss per second deep in a snow mound
 constexpr float RAMP_LANDING_CLEAR = 60.0f; // obstacle-free distance after a ramp
 
+// --- speed-feel intensity (knobs for a future sensory settings screen) ---
+// Scale the strength of each speed sensation effect; 1.0 is the default.
+// A "Calm" profile would lower these, a "Boost" profile could raise them.
+constexpr float SPEED_FX_FOV = 1.0f;    // FOV widening at speed
+constexpr float SPEED_FX_WIND = 1.0f;   // wind audio volume
+constexpr float SPEED_FX_GROUND = 1.0f; // groomed reference-pattern contrast
+
 // --- spawning / recycling ---
 constexpr float SPAWN_DIST = 120.0f;        // fill content up to this far ahead
 constexpr float DESPAWN_Z = 24.0f;          // recycle once behind this z

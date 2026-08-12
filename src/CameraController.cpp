@@ -22,7 +22,7 @@
 namespace sb {
 
 namespace {
-constexpr float kCamDistZ = 9.5f;   // distance behind the player
+constexpr float kCamDistZ = 9.5f;   // base distance behind the player
 constexpr float kCamHeight = 2.1f;  // height above the slope surface
 } // namespace
 
@@ -44,18 +44,20 @@ void CameraController::Update(float dt, const Vector3& playerPos, float speed) {
     smoothY_ += (playerPos.y * 0.3f - smoothY_) * k;   // weak vertical follow
 
     // Ride along the slope: behind the player the ground is higher, so the
-    // camera sits on that raised surface and looks down the mountain.
+    // camera sits on that raised surface and looks down the mountain. The
+    // camera backs off at speed to widen the view and sell the velocity.
+    const float speedT = std::min(1.0f, speed / MAX_SPEED);
+    const float dist = kCamDistZ + speedT * 3.0f;
     camera.position.x = smoothX_;
-    camera.position.y = SLOPE * kCamDistZ + kCamHeight + smoothY_;
-    camera.position.z = kCamDistZ;
+    camera.position.y = SLOPE * dist + kCamHeight + smoothY_;
+    camera.position.z = dist;
 
     camera.target.x = smoothX_;
     camera.target.y = playerPos.y + 0.7f;
     camera.target.z = 0.0f;
 
     // Widening FOV at higher speeds sells the acceleration.
-    const float speedT = std::min(1.0f, speed / MAX_SPEED);
-    camera.fovy = 62.0f + speedT * 13.0f;
+    camera.fovy = 62.0f + speedT * (SPEED_FX_FOV * 20.0f);
 }
 
 } // namespace sb

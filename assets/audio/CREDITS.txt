@@ -1,0 +1,10 @@
+# Audio Credits
+
+## wind.ogg
+- File: assets/audio/wind.ogg
+- License: Creative Commons Attribution 3.0 Unported (CC-BY 3.0)
+- Source: "Wind Loop" by AntumDeluge, OpenGameArt.org
+  https://opengameart.org/content/wind-loop
+- Original recording: Jonathan Shaw (InspectorJ), Freesound
+  https://freesound.org/people/InspectorJ/sounds/376415/
+- Attribution required: "Created by Jonathan Shaw (InspectorJ)."

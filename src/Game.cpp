@@ -51,7 +51,7 @@ void Game::Run() {
     SetTargetFPS(60);
 
     LoadAssets();
-    sounds_.Init();
+    sounds_.Init(AssetsPath("audio/wind.ogg").c_str());
 
     while (!WindowShouldClose()) {
         Update();
@@ -192,6 +192,7 @@ void Game::Update() {
                 StartRun();
             }
             particles_.Update(dt);
+            sounds_.UpdateWind(0.0f);
             break;
         }
         case GameState::Playing: {
@@ -247,12 +248,14 @@ void Game::Update() {
             HandleCollisions();
             camera_.Update(dt, player_.position, speed_);
             particles_.Update(dt);
+            sounds_.UpdateWind(std::min(1.0f, speed_ / MAX_SPEED));
             break;
         }
         case GameState::Crashed: {
             crashTimer_ += dt;
             player_.Update(dt, 0.0f, 0.0f);
             particles_.Update(dt);
+            sounds_.UpdateWind(0.0f);
             if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ENTER)) {
                 StartRun();
             }

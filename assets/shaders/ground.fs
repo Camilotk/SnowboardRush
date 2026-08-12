@@ -28,5 +28,13 @@ void main()
     // Tile the snow noise and scroll it along the slope so the surface
     // visibly streams toward the camera as the player descends.
     vec2 uv = fragTexCoord * 50.0 + vec2(0.0, uOffset);
-    finalColor = texture(texture0, uv);
+
+    // Groomed-snow bands (corduroy): a subtle repeating reference pattern
+    // so the eye can measure speed against the surface, like Sonic's
+    // checkered ground. Period ~10 world units, scrolls with uOffset.
+    float band = step(0.5, fract(uv.y * 4.0));
+    vec3 col = texture(texture0, uv).rgb;
+    col *= 0.86 + 0.14 * band;
+
+    finalColor = vec4(col, 1.0);
 }

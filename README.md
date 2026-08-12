@@ -6,8 +6,10 @@ ramps, collect coins, and chase your high score as the mountain keeps getting
 faster.
 
 Every asset — 3D models, materials, textures, and sound effects — is generated
-procedurally or authored as plain-text Wavefront OBJ/MTL. There are no external
-art, model, or audio downloads.
+procedurally or authored as plain-text Wavefront OBJ/MTL, except the ambient
+wind loop, which is a bundled CC-BY 3.0 recording (see
+[`assets/audio/CREDITS.txt`](assets/audio/CREDITS.txt)). There are no external
+art, model, or audio downloads at build time.
 
 ## Dependencies
 
@@ -130,3 +132,6 @@ Copyright (C) 2026 Camilo Cunha de Azevedo.
 
 See [LICENSE](LICENSE) for the full license text, or
 <https://www.gnu.org/licenses/gpl-3.0.html>.
+
+The bundled wind loop (`assets/audio/wind.ogg`) is licensed separately under
+CC-BY 3.0; attribution is recorded in [`assets/audio/CREDITS.txt`](assets/audio/CREDITS.txt).

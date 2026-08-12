@@ -16,6 +16,8 @@
 
 #include "SoundManager.h"
 
+#include "Constants.h"
+
 #include <cmath>
 #include <random>
 
@@ -55,7 +57,7 @@ Sound SoundManager::BuildSound(const std::function<float(float, float)>& gen, fl
     return sound;
 }
 
-void SoundManager::Init() {
+void SoundManager::Init(const char* windPath) {
     InitAudioDevice();
 
     // Coin pickup: quick rising chime.
@@ -85,6 +87,15 @@ void SoundManager::Init() {
         return (wobble * 0.5f + dist(rng) * 0.5f) * envelope(t, total);
     }, 0.45f);
 
+    // Wind: a looping ambient bed loaded from a bundled recording.
+    windMusic_ = LoadMusicStream(windPath);
+    if (IsMusicValid(windMusic_)) {
+        windMusic_.looping = true;
+        SetMusicVolume(windMusic_, 0.0f);
+        PlayMusicStream(windMusic_);
+        windReady_ = true;
+    }
+
     ready_ = true;
 }
 
@@ -94,8 +105,20 @@ void SoundManager::Shutdown() {
     UnloadSound(jump_);
     UnloadSound(crash_);
     UnloadSound(ramp_);
+    if (windReady_) {
+        UnloadMusicStream(windMusic_);
+        windReady_ = false;
+    }
     CloseAudioDevice();
     ready_ = false;
+}
+
+void SoundManager::UpdateWind(float speedT) {
+    if (!windReady_) return;
+    UpdateMusicStream(windMusic_);
+    if (speedT < 0.0f) speedT = 0.0f;
+    if (speedT > 1.0f) speedT = 1.0f;
+    SetMusicVolume(windMusic_, 0.4f * speedT * SPEED_FX_WIND);
 }
 
 void SoundManager::PlayCoin() { if (ready_) PlaySound(coin_); }
