@@ -1,0 +1,56 @@
+#pragma once
+
+// Resolved at compile time by CMake (absolute path to assets/), with a
+// sensible fallback for manual compilation from the project root.
+#ifndef ASSETS_PATH
+#define ASSETS_PATH "assets/"
+#endif
+
+namespace sb {
+
+// --- course ---
+constexpr float COURSE_HALF_WIDTH = 10.0f;  // playable x range [-10, 10]
+constexpr float COURSE_EDGE_X = COURSE_HALF_WIDTH - 0.5f; // clamp line / boundary marker x
+constexpr float PLAYER_Z = 0.0f;            // player is fixed at z = 0
+
+// --- player ---
+constexpr float PLAYER_REST_Y = 0.32f;      // snowboard ride height above snow
+constexpr float PLAYER_RADIUS = 0.55f;      // collision radius (x-z circle)
+constexpr float STEER_ACCEL = 55.0f;        // horizontal acceleration
+constexpr float STEER_DAMP = 8.0f;          // horizontal damping (release glide)
+constexpr float MAX_STEER_SPEED = 13.0f;    // horizontal speed cap
+constexpr float MAX_LEAN = 0.30f;           // max bank angle (radians)
+constexpr float GRAVITY = -32.0f;           // world gravity
+constexpr float JUMP_SPEED = 13.5f;         // manual jump impulse
+constexpr float RAMP_LAUNCH_FACTOR = 0.45f; // ramp vy = factor * downhill speed
+constexpr float LANDING_SCRUB = 0.01f;      // speed loss per unit landing impact
+
+// --- downhill / speed ---
+constexpr float SLOPE = 0.40f;              // downhill grade (rise over run)
+constexpr float SLOPE_ANGLE = 0.3805f;      // atan(SLOPE), precomputed
+constexpr float SLOPE_SIN = 0.3714f;        // sin(atan(SLOPE)) - downhill gravity component
+constexpr float SLOPE_COS = 0.9285f;        // cos(atan(SLOPE)) - surface normal component
+constexpr float PLAYER_FORWARD_PITCH = 0.38f; // constant nose-down lean (matches grade)
+
+constexpr float BASE_SPEED = 14.0f;         // starting downhill speed
+constexpr float MAX_SPEED = 52.0f;          // maximum downhill speed
+constexpr float SNOW_MU = 0.04f;            // kinetic friction (groomed snow)
+constexpr float DRAG_K = 0.0043f;           // quadratic air drag (terminal ~50 u/s)
+constexpr float CARVE_SCRUB = 0.02f;        // speed loss per unit steer input
+constexpr float SNOW_SCRUB = 8.0f;          // speed loss per second deep in a snow mound
+constexpr float RAMP_LANDING_CLEAR = 60.0f; // obstacle-free distance after a ramp
+
+// --- spawning / recycling ---
+constexpr float SPAWN_DIST = 120.0f;        // fill content up to this far ahead
+constexpr float DESPAWN_Z = 24.0f;          // recycle once behind this z
+constexpr float MARKER_SPACING = 8.0f;      // distance between boundary flag poles
+
+// --- scoring ---
+constexpr int COIN_SCORE = 50;
+constexpr int RAMP_SCORE = 100;
+constexpr int POINTS_PER_METER = 2;
+
+// --- game state ---
+enum class GameState { Menu, Playing, Crashed };
+
+} // namespace sb

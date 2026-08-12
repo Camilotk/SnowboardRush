@@ -1,0 +1,9 @@
+# rock.mtl - Snowboard Rush
+newmtl rock
+Kd 0.5200 0.5500 0.6000
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
+

@@ -1,0 +1,41 @@
+# snowboarder.mtl - Snowboard Rush
+newmtl boots
+Kd 0.3500 0.2000 0.1000
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
+
+newmtl pants
+Kd 0.1000 0.2000 0.4500
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
+
+newmtl jacket
+Kd 0.9500 0.4200 0.1000
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
+
+newmtl skin
+Kd 0.9500 0.7600 0.6200
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
+
+newmtl helmet
+Kd 0.1000 0.7000 0.7000
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
+

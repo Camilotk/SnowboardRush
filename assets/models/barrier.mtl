@@ -1,0 +1,16 @@
+# barrier.mtl - Snowboard Rush
+newmtl red
+Kd 0.8400 0.2350 0.1570
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
+
+newmtl white
+Kd 0.9500 0.9500 0.9500
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2

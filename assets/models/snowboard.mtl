@@ -1,0 +1,9 @@
+# snowboard.mtl - Snowboard Rush
+newmtl board
+Kd 0.9000 0.2000 0.1500
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
+

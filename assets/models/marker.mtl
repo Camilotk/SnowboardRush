@@ -1,0 +1,16 @@
+# marker.mtl - Snowboard Rush
+newmtl orange
+Kd 1.0000 0.5490 0.0000
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
+
+newmtl white
+Kd 0.9500 0.9500 0.9500
+Ka 0.0 0.0 0.0
+Ks 0.1 0.1 0.1
+Ns 4.0
+d 1.0
+illum 2
