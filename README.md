@@ -6,6 +6,14 @@ A fast, fun 3D snowboarding endless runner. Built in C++17 with raylib. No bloat
 
 ---
 
+## 🎥 See it in action
+
+![Snowboard Rush Gameplay](gameplay.gif)
+
+*Carving down the mountain, dodging trees, hitting ramps, and chasing the high score.*
+
+---
+
 ## 🎮 What's it like?
 
 Drop into a procedurally-generated mountain and **ride as far as you can**. The longer you survive, the faster it gets. Weave between trees and rocks, launch off ramps, grab coins for points, and try not to explode into a snowbank.
