@@ -80,7 +80,7 @@ private:
     SoundManager sounds_;
 #ifdef WEBCAM_CONTROL_ENABLED
     WebcamInput webcam_;
-    bool webcamEnabled_ = true;
+    bool webcamEnabled_ = false;
     bool webcamPreviewVisible_ = true;
     float webcamSensitivity_ = 2.2f;
     Texture2D webcamPreviewTexture_ = {};
