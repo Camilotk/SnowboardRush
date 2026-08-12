@@ -50,6 +50,8 @@ void Game::Run() {
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
     InitWindow(1280, 720, "Snowboard Rush");
     SetTargetFPS(60);
+    // ESC drives the pause/back navigation instead of closing the window.
+    SetExitKey(KEY_NULL);
 
     LoadAssets();
     sounds_.Init(AssetsPath("audio/wind.ogg").c_str());
@@ -57,7 +59,7 @@ void Game::Run() {
     webcam_.Init();
 #endif
 
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose() && !shouldQuit_) {
         Update();
         Draw();
     }
@@ -194,16 +196,18 @@ void Game::HandleCollisions() {
 
 #ifdef WEBCAM_CONTROL_ENABLED
 void Game::UpdateWebcamPreview() {
-    if (!webcamEnabled_ || !webcam_.IsAvailable()) return;
+    if (!webcamEnabled_ || !webcamPreviewVisible_ || !webcam_.IsAvailable()) return;
 
-    std::vector<unsigned char> rgb;
+    // Returns false unless a new camera frame arrived, so at 60 fps we skip
+    // the upload on the frames where the (slower) camera had nothing new.
     int w = 0, h = 0;
-    if (!webcam_.GetPreviewFrame(rgb, w, h)) return;
+    if (!webcam_.GetPreviewFrame(webcamPreviewBuffer_, w, h)) return;
+    if (webcamPreviewBuffer_.size() < static_cast<size_t>(w) * h * 3) return;
 
     if (!webcamPreviewLoaded_ || webcamPreviewTexture_.width != w || webcamPreviewTexture_.height != h) {
         if (webcamPreviewLoaded_) UnloadTexture(webcamPreviewTexture_);
         Image img = {};
-        img.data = rgb.data();
+        img.data = webcamPreviewBuffer_.data();
         img.width = w;
         img.height = h;
         img.mipmaps = 1;
@@ -211,10 +215,89 @@ void Game::UpdateWebcamPreview() {
         webcamPreviewTexture_ = LoadTextureFromImage(img);
         webcamPreviewLoaded_ = true;
     } else {
-        UpdateTexture(webcamPreviewTexture_, rgb.data());
+        UpdateTexture(webcamPreviewTexture_, webcamPreviewBuffer_.data());
     }
 }
 #endif
+
+int Game::UpdateMenuSelection(int& index, int count) {
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) index = (index + 1) % count;
+    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) index = (index + count - 1) % count;
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) return index;
+    return -1;
+}
+
+int Game::OptionsEntryCount() const {
+#ifdef WEBCAM_CONTROL_ENABLED
+    return 4; // webcam, preview, sensitivity, back
+#else
+    return 1; // back
+#endif
+}
+
+void Game::UpdateMenu() {
+    switch (UpdateMenuSelection(menuIndex_, 3)) {
+        case 0: StartRun(); break;
+        case 1:
+            optionsReturn_ = GameState::Menu;
+            optionsIndex_ = 0;
+            state_ = GameState::Options;
+            break;
+        case 2: shouldQuit_ = true; break;
+        default: break;
+    }
+}
+
+void Game::UpdatePauseMenu() {
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        state_ = GameState::Playing;
+        return;
+    }
+    switch (UpdateMenuSelection(pauseIndex_, 4)) {
+        case 0: state_ = GameState::Playing; break;
+        case 1:
+            optionsReturn_ = GameState::Paused;
+            optionsIndex_ = 0;
+            state_ = GameState::Options;
+            break;
+        case 2: StartRun(); break;
+        case 3: state_ = GameState::Menu; break;
+        default: break;
+    }
+}
+
+void Game::UpdateOptionsMenu() {
+    const int count = OptionsEntryCount();
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        state_ = optionsReturn_;
+        return;
+    }
+
+#ifdef WEBCAM_CONTROL_ENABLED
+    // Left/right adjust the entry under the cursor without leaving the menu.
+    const bool left = IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A);
+    const bool right = IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D);
+    if (left || right) {
+        if (optionsIndex_ == 0) webcamEnabled_ = !webcamEnabled_;
+        else if (optionsIndex_ == 1) webcamPreviewVisible_ = !webcamPreviewVisible_;
+        else if (optionsIndex_ == 2) {
+            webcamSensitivity_ = std::clamp(webcamSensitivity_ + (right ? 0.2f : -0.2f), 0.6f, 4.0f);
+            webcam_.SetSensitivity(webcamSensitivity_);
+        }
+    }
+#endif
+
+    const int chosen = UpdateMenuSelection(optionsIndex_, count);
+    if (chosen < 0) return;
+
+#ifdef WEBCAM_CONTROL_ENABLED
+    if (chosen == 0) webcamEnabled_ = !webcamEnabled_;
+    else if (chosen == 1) webcamPreviewVisible_ = !webcamPreviewVisible_;
+    else if (chosen == 3) state_ = optionsReturn_;
+#else
+    if (chosen == 0) state_ = optionsReturn_;
+#endif
+}
 
 void Game::Update() {
     float dt = GetFrameTime();
@@ -231,21 +314,34 @@ void Game::Update() {
 
     switch (state_) {
         case GameState::Menu: {
-            if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                StartRun();
-            }
+            UpdateMenu();
             particles_.Update(dt);
             sounds_.UpdateWind(0.0f);
             break;
         }
+        case GameState::Paused: {
+            UpdatePauseMenu();
+            sounds_.UpdateWind(0.0f);
+            break;
+        }
+        case GameState::Options: {
+            UpdateOptionsMenu();
+            sounds_.UpdateWind(0.0f);
+            break;
+        }
         case GameState::Playing: {
+            if (IsKeyPressed(KEY_ESCAPE)) {
+                pauseIndex_ = 0;
+                state_ = GameState::Paused;
+                break;
+            }
+
             float steer = 0.0f;
             if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) steer -= 1.0f;
             if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) steer += 1.0f;
             bool jumpPressed = IsKeyPressed(KEY_SPACE);
 
 #ifdef WEBCAM_CONTROL_ENABLED
-            if (IsKeyPressed(KEY_C)) webcamEnabled_ = !webcamEnabled_;
             if (webcamEnabled_ && webcam_.IsAvailable()) {
                 steer = std::clamp(steer + webcam_.GetSteer(), -1.0f, 1.0f);
                 if (webcam_.ConsumeJump()) jumpPressed = true;
@@ -404,6 +500,22 @@ void Game::DrawWorld() {
     particles_.Draw();
 }
 
+void Game::DrawMenuEntries(const char* const* labels, int count, int selected, int y, int size) {
+    const int sw = GetScreenWidth();
+    for (int i = 0; i < count; ++i) {
+        const bool active = (i == selected);
+        const Color color = active ? Color{ 40, 170, 100, 255 } : Fade(kTextColor, 0.75f);
+        const int w = MeasureText(labels[i], size);
+        const int x = (sw - w) / 2;
+        if (active) {
+            DrawRectangle(x - 26, y - 6, w + 52, size + 12, Fade(WHITE, 0.45f));
+            DrawText(">", x - 24, y, size, color);
+        }
+        DrawText(labels[i], x, y, size, color);
+        y += size + 22;
+    }
+}
+
 void Game::DrawUI() {
     const int sw = GetScreenWidth();
     const int sh = GetScreenHeight();
@@ -414,34 +526,64 @@ void Game::DrawUI() {
             const char* title = "SNOWBOARD RUSH";
             const int titleSize = 90;
             const int titleW = MeasureText(title, titleSize);
-            DrawText(title, (sw - titleW) / 2, 150, titleSize, kTextColor);
+            DrawText(title, (sw - titleW) / 2, 110, titleSize, kTextColor);
 
-            const int subSize = 26;
-            const char* lines[] = {
-                "Ride downhill, dodge obstacles, collect coins.",
-                "Hit a ramp to launch into the air!",
-                "",
-                "A / D  or  ARROW KEYS   -  steer",
-                "SPACE                    -  jump",
-                "R                        -  restart",
-                "ESC                      -  quit",
-            };
-            const int n = static_cast<int>(sizeof(lines) / sizeof(lines[0]));
-            int y = 320;
-            for (int i = 0; i < n; ++i) {
-                const int w = MeasureText(lines[i], subSize);
-                DrawText(lines[i], (sw - w) / 2, y, subSize, kTextColor);
-                y += 40;
-            }
+            const char* tagline = "Ride downhill, dodge obstacles, collect coins.";
+            DrawText(tagline, (sw - MeasureText(tagline, 24)) / 2, 230, 24, Fade(kTextColor, 0.8f));
 
-            const char* prompt = "PRESS ENTER TO START";
-            const int promptSize = 34;
-            const int pw = MeasureText(prompt, promptSize);
+            const char* entries[] = { "START", "OPTIONS", "QUIT" };
+            DrawMenuEntries(entries, 3, menuIndex_, 340, 36);
+
+            const char* hint = "ARROWS  navigate     ENTER  select";
             const float pulse = 0.6f + 0.4f * std::sin(menuTime_ * 5.0f);
-            DrawText(prompt, (sw - pw) / 2, 640, promptSize,
-                     { (unsigned char)(kTextColor.r * pulse + 255 * (1.0f - pulse)),
-                       (unsigned char)(kTextColor.g * pulse + 255 * (1.0f - pulse)),
-                       (unsigned char)(kTextColor.b * pulse + 255 * (1.0f - pulse)), 255 });
+            DrawText(hint, (sw - MeasureText(hint, 22)) / 2, 620, 22,
+                     Fade(kTextColor, 0.5f + 0.3f * pulse));
+            break;
+        }
+
+        case GameState::Paused: {
+            DrawRectangle(0, 0, sw, sh, Fade(BLACK, 0.55f));
+            const char* title = "PAUSED";
+            const int titleSize = 70;
+            DrawText(title, (sw - MeasureText(title, titleSize)) / 2, 150, titleSize, RAYWHITE);
+
+            const char* entries[] = { "RESUME", "OPTIONS", "RESTART", "QUIT TO MENU" };
+            DrawMenuEntries(entries, 4, pauseIndex_, 300, 34);
+
+            const char* hint = "ESC  resume";
+            DrawText(hint, (sw - MeasureText(hint, 22)) / 2, 620, 22, Fade(RAYWHITE, 0.7f));
+            break;
+        }
+
+        case GameState::Options: {
+            const bool overGame = (optionsReturn_ == GameState::Paused);
+            DrawRectangle(0, 0, sw, sh, overGame ? Fade(BLACK, 0.55f) : Fade(WHITE, 0.10f));
+            const Color fg = overGame ? RAYWHITE : kTextColor;
+
+            const char* title = "OPTIONS";
+            const int titleSize = 70;
+            DrawText(title, (sw - MeasureText(title, titleSize)) / 2, 130, titleSize, fg);
+
+#ifdef WEBCAM_CONTROL_ENABLED
+            const char* camState = !webcam_.IsAvailable() ? "NO CAMERA"
+                                                          : (webcamEnabled_ ? "ON" : "OFF");
+            const char* e0 = TextFormat("WEBCAM CONTROL:  < %s >", camState);
+            const char* e1 = TextFormat("SHOW CAMERA VIEW:  < %s >", webcamPreviewVisible_ ? "ON" : "OFF");
+            const char* e2 = TextFormat("CAMERA SENSITIVITY:  < %.1f >", webcamSensitivity_);
+            const char* entries[] = { e0, e1, e2, "BACK" };
+            DrawMenuEntries(entries, 4, optionsIndex_, 290, 30);
+
+            const char* note = "Lean left / right to steer  -  hop to jump";
+            DrawText(note, (sw - MeasureText(note, 20)) / 2, 520, 20, Fade(fg, 0.65f));
+#else
+            const char* unavailable = "Webcam control not available in this build.";
+            DrawText(unavailable, (sw - MeasureText(unavailable, 24)) / 2, 300, 24, Fade(fg, 0.8f));
+            const char* entries[] = { "BACK" };
+            DrawMenuEntries(entries, 1, optionsIndex_, 380, 30);
+#endif
+
+            const char* hint = "LEFT / RIGHT  change     ENTER  select     ESC  back";
+            DrawText(hint, (sw - MeasureText(hint, 22)) / 2, 620, 22, Fade(fg, 0.6f));
             break;
         }
 
@@ -465,7 +607,7 @@ void Game::DrawUI() {
             DrawRectangle(bx, by, static_cast<int>(barW * speedT), barH, { 60, 200, 120, 255 });
 
             if (runTime_ < 6.0f) {
-                const char* hint = "A / D  steer   -   SPACE  jump";
+                const char* hint = "A / D  steer   -   SPACE  jump   -   ESC  pause";
                 const int hw = MeasureText(hint, 22);
                 DrawText(hint, (sw - hw) / 2, sh - 60, 22, Fade(RAYWHITE, 0.9f));
             }
@@ -502,7 +644,7 @@ void Game::DrawUI() {
     }
 
 #ifdef WEBCAM_CONTROL_ENABLED
-    if (webcamEnabled_ && webcamPreviewLoaded_) {
+    if (webcamEnabled_ && webcamPreviewVisible_ && webcamPreviewLoaded_ && state_ != GameState::Menu) {
         const int thumbW = 220;
         const int thumbH = webcamPreviewTexture_.height * thumbW / webcamPreviewTexture_.width;
         const int tx = sw - thumbW - 16;
@@ -513,7 +655,7 @@ void Game::DrawUI() {
                         { (float)tx, (float)ty, (float)thumbW, (float)thumbH },
                         { 0, 0 }, 0.0f, WHITE);
         DrawRectangleLines(tx, ty, thumbW, thumbH, { 60, 200, 120, 255 });
-        DrawText("CAM (C)", tx, ty - 20, 16, Fade(RAYWHITE, 0.8f));
+        DrawText("CAM", tx, ty - 20, 16, Fade(RAYWHITE, 0.8f));
     }
 #endif
 }

@@ -74,6 +74,6 @@ constexpr int RAMP_SCORE = 100;
 constexpr int POINTS_PER_METER = 2;
 
 // --- game state ---
-enum class GameState { Menu, Playing, Crashed };
+enum class GameState { Menu, Playing, Paused, Options, Crashed };
 
 } // namespace sb

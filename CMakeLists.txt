@@ -62,7 +62,7 @@ message(STATUS "raylib library: ${RAYLIB_LIBRARY}")
 option(ENABLE_WEBCAM_CONTROL "Enable webcam motion control via OpenCV" ON)
 
 if(ENABLE_WEBCAM_CONTROL)
-    find_package(OpenCV QUIET COMPONENTS core imgproc videoio)
+    find_package(OpenCV QUIET COMPONENTS core imgproc videoio objdetect)
     if(OpenCV_FOUND)
         message(STATUS "OpenCV found (${OpenCV_VERSION}): webcam motion control enabled.")
     else()

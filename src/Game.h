@@ -18,6 +18,8 @@
 
 #include "raylib.h"
 
+#include <vector>
+
 #include "Constants.h"
 #include "Player.h"
 #include "World.h"
@@ -51,12 +53,26 @@ private:
     void UpdateWebcamPreview();
 #endif
 
+    // Menus. UpdateMenuSelection moves the cursor with the arrow keys and
+    // returns the entry index chosen with Enter, or -1 if none this frame.
+    int UpdateMenuSelection(int& index, int count);
+    void UpdateMenu();
+    void UpdatePauseMenu();
+    void UpdateOptionsMenu();
+    void DrawMenuEntries(const char* const* labels, int count, int selected, int y, int size);
+    int OptionsEntryCount() const;
+
     void StartRun();
     void HandleCollisions();
     void OnCrash();
 
     // state
     GameState state_ = GameState::Menu;
+    bool shouldQuit_ = false;
+    int menuIndex_ = 0;
+    int pauseIndex_ = 0;
+    int optionsIndex_ = 0;
+    GameState optionsReturn_ = GameState::Menu;
     Player player_;
     World world_;
     CameraController camera_;
@@ -65,8 +81,12 @@ private:
 #ifdef WEBCAM_CONTROL_ENABLED
     WebcamInput webcam_;
     bool webcamEnabled_ = true;
+    bool webcamPreviewVisible_ = true;
+    float webcamSensitivity_ = 2.2f;
     Texture2D webcamPreviewTexture_ = {};
     bool webcamPreviewLoaded_ = false;
+    // Reused across frames; swapped with the tracker's buffer, never realloc'd.
+    std::vector<unsigned char> webcamPreviewBuffer_;
 #endif
 
     // scoring
