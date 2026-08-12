@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <vector>
 
 namespace sb {
 
@@ -52,6 +53,9 @@ void Game::Run() {
 
     LoadAssets();
     sounds_.Init(AssetsPath("audio/wind.ogg").c_str());
+#ifdef WEBCAM_CONTROL_ENABLED
+    webcam_.Init();
+#endif
 
     while (!WindowShouldClose()) {
         Update();
@@ -59,6 +63,9 @@ void Game::Run() {
     }
 
     sounds_.Shutdown();
+#ifdef WEBCAM_CONTROL_ENABLED
+    webcam_.Shutdown();
+#endif
     UnloadAssets();
     CloseWindow();
 }
@@ -120,6 +127,9 @@ void Game::UnloadAssets() {
     UnloadModel(markerModel_);
     UnloadTexture(groundTexture_);
     snowShader_.Unload();
+#ifdef WEBCAM_CONTROL_ENABLED
+    if (webcamPreviewLoaded_) UnloadTexture(webcamPreviewTexture_);
+#endif
 }
 
 void Game::StartRun() {
@@ -182,11 +192,38 @@ void Game::HandleCollisions() {
     }
 }
 
+#ifdef WEBCAM_CONTROL_ENABLED
+void Game::UpdateWebcamPreview() {
+    if (!webcamEnabled_ || !webcam_.IsAvailable()) return;
+
+    std::vector<unsigned char> rgb;
+    int w = 0, h = 0;
+    if (!webcam_.GetPreviewFrame(rgb, w, h)) return;
+
+    if (!webcamPreviewLoaded_ || webcamPreviewTexture_.width != w || webcamPreviewTexture_.height != h) {
+        if (webcamPreviewLoaded_) UnloadTexture(webcamPreviewTexture_);
+        Image img = {};
+        img.data = rgb.data();
+        img.width = w;
+        img.height = h;
+        img.mipmaps = 1;
+        img.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
+        webcamPreviewTexture_ = LoadTextureFromImage(img);
+        webcamPreviewLoaded_ = true;
+    } else {
+        UpdateTexture(webcamPreviewTexture_, rgb.data());
+    }
+}
+#endif
+
 void Game::Update() {
     float dt = GetFrameTime();
     if (dt > 0.05f) dt = 0.05f;
 
     menuTime_ += dt;
+#ifdef WEBCAM_CONTROL_ENABLED
+    UpdateWebcamPreview();
+#endif
 
     // Development-only shader debug controls.
     if (IsKeyPressed(KEY_F5)) snowShader_.CycleDebugMode(-1);
@@ -205,8 +242,17 @@ void Game::Update() {
             float steer = 0.0f;
             if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) steer -= 1.0f;
             if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) steer += 1.0f;
+            bool jumpPressed = IsKeyPressed(KEY_SPACE);
 
-            if (IsKeyPressed(KEY_SPACE)) {
+#ifdef WEBCAM_CONTROL_ENABLED
+            if (IsKeyPressed(KEY_C)) webcamEnabled_ = !webcamEnabled_;
+            if (webcamEnabled_ && webcam_.IsAvailable()) {
+                steer = std::clamp(steer + webcam_.GetSteer(), -1.0f, 1.0f);
+                if (webcam_.ConsumeJump()) jumpPressed = true;
+            }
+#endif
+
+            if (jumpPressed) {
                 player_.Jump();
                 sounds_.PlayJump();
             }
@@ -454,6 +500,22 @@ void Game::DrawUI() {
             break;
         }
     }
+
+#ifdef WEBCAM_CONTROL_ENABLED
+    if (webcamEnabled_ && webcamPreviewLoaded_) {
+        const int thumbW = 220;
+        const int thumbH = webcamPreviewTexture_.height * thumbW / webcamPreviewTexture_.width;
+        const int tx = sw - thumbW - 16;
+        const int ty = sh - thumbH - 16;
+        DrawRectangle(tx - 4, ty - 4, thumbW + 8, thumbH + 8, Fade(BLACK, 0.5f));
+        DrawTexturePro(webcamPreviewTexture_,
+                        { 0, 0, (float)webcamPreviewTexture_.width, (float)webcamPreviewTexture_.height },
+                        { (float)tx, (float)ty, (float)thumbW, (float)thumbH },
+                        { 0, 0 }, 0.0f, WHITE);
+        DrawRectangleLines(tx, ty, thumbW, thumbH, { 60, 200, 120, 255 });
+        DrawText("CAM (C)", tx, ty - 20, 16, Fade(RAYWHITE, 0.8f));
+    }
+#endif
 }
 
 void Game::Draw() {

@@ -55,6 +55,22 @@ message(STATUS "raylib include: ${RAYLIB_INCLUDE_DIR}")
 message(STATUS "raylib library: ${RAYLIB_LIBRARY}")
 
 # ---------------------------------------------------------------------------
+# Optional webcam motion control (left/right/jump via OpenCV). Skipped
+# silently when OpenCV isn't installed - the game still builds and runs,
+# keyboard-only.
+# ---------------------------------------------------------------------------
+option(ENABLE_WEBCAM_CONTROL "Enable webcam motion control via OpenCV" ON)
+
+if(ENABLE_WEBCAM_CONTROL)
+    find_package(OpenCV QUIET COMPONENTS core imgproc videoio)
+    if(OpenCV_FOUND)
+        message(STATUS "OpenCV found (${OpenCV_VERSION}): webcam motion control enabled.")
+    else()
+        message(STATUS "OpenCV not found: webcam motion control disabled, keyboard-only build.")
+    endif()
+endif()
+
+# ---------------------------------------------------------------------------
 # Target
 # ---------------------------------------------------------------------------
 add_executable(snowboard_rush
@@ -68,6 +84,13 @@ add_executable(snowboard_rush
     src/SnowShader.cpp
     src/SoundManager.cpp
 )
+
+if(ENABLE_WEBCAM_CONTROL AND OpenCV_FOUND)
+    target_sources(snowboard_rush PRIVATE src/WebcamInput.cpp)
+    target_compile_definitions(snowboard_rush PRIVATE WEBCAM_CONTROL_ENABLED)
+    target_include_directories(snowboard_rush PRIVATE ${OpenCV_INCLUDE_DIRS})
+    target_link_libraries(snowboard_rush PRIVATE ${OpenCV_LIBS})
+endif()
 
 target_include_directories(snowboard_rush PRIVATE src ${RAYLIB_INCLUDE_DIR})
 

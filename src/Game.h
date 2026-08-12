@@ -26,6 +26,10 @@
 #include "SoundManager.h"
 #include "SnowShader.h"
 
+#ifdef WEBCAM_CONTROL_ENABLED
+#include "WebcamInput.h"
+#endif
+
 namespace sb {
 
 class Game {
@@ -43,6 +47,9 @@ private:
     void Draw();
     void DrawWorld();
     void DrawUI();
+#ifdef WEBCAM_CONTROL_ENABLED
+    void UpdateWebcamPreview();
+#endif
 
     void StartRun();
     void HandleCollisions();
@@ -55,6 +62,12 @@ private:
     CameraController camera_;
     SnowParticles particles_{ 260 };
     SoundManager sounds_;
+#ifdef WEBCAM_CONTROL_ENABLED
+    WebcamInput webcam_;
+    bool webcamEnabled_ = true;
+    Texture2D webcamPreviewTexture_ = {};
+    bool webcamPreviewLoaded_ = false;
+#endif
 
     // scoring
     float distance_ = 0.0f;
