@@ -24,6 +24,7 @@
 #include "CameraController.h"
 #include "SnowParticles.h"
 #include "SoundManager.h"
+#include "SnowShader.h"
 
 namespace sb {
 
@@ -81,8 +82,7 @@ private:
     Model moundModel_ = {};
     Model markerModel_ = {};
     Texture2D groundTexture_ = {};
-    Shader groundShader_ = {};
-    int groundOffsetLoc_ = -1;
+    SnowShader snowShader_;
 };
 
 } // namespace sb

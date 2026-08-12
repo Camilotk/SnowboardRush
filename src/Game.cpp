@@ -91,11 +91,13 @@ void Game::LoadAssets() {
     SetTextureWrap(groundTexture_, TEXTURE_WRAP_REPEAT);
     groundModel_.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = groundTexture_;
 
-    // Scroll the snow surface toward the camera to sell the descent.
-    groundShader_ = LoadShader(nullptr, AssetsPath("shaders/ground.fs").c_str());
-    if (groundShader_.id != 0) {
-        groundModel_.materials[0].shader = groundShader_;
-        groundOffsetLoc_ = GetShaderLocation(groundShader_, "uOffset");
+    // Advanced procedural snow shader, shared by the snow-covered surfaces.
+    if (snowShader_.Load(AssetsPath("shaders/snow.vs").c_str(),
+                         AssetsPath("shaders/snow.fs").c_str())) {
+        snowShader_.ApplySettings(MakePowderPreset());
+        groundModel_.materials[0].shader = snowShader_.shader;
+        moundModel_.materials[0].shader = snowShader_.shader;
+        mountainModel_.materials[0].shader = snowShader_.shader;
     }
 
     // Tilt the ground into a downhill grade (drops off toward -z / ahead).
@@ -117,7 +119,7 @@ void Game::UnloadAssets() {
     UnloadModel(moundModel_);
     UnloadModel(markerModel_);
     UnloadTexture(groundTexture_);
-    if (groundShader_.id != 0) UnloadShader(groundShader_);
+    snowShader_.Unload();
 }
 
 void Game::StartRun() {
@@ -186,6 +188,10 @@ void Game::Update() {
 
     menuTime_ += dt;
 
+    // Development-only shader debug controls.
+    if (IsKeyPressed(KEY_F5)) snowShader_.CycleDebugMode(-1);
+    if (IsKeyPressed(KEY_F6)) snowShader_.CycleDebugMode(1);
+
     switch (state_) {
         case GameState::Menu: {
             if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
@@ -239,10 +245,6 @@ void Game::Update() {
             }
             world_.Update(dt, speed_);
             distance_ = world_.Distance();
-            if (groundOffsetLoc_ >= 0) {
-                const float offset = -distance_ * 0.025f;
-                SetShaderValue(groundShader_, groundOffsetLoc_, &offset, SHADER_UNIFORM_FLOAT);
-            }
             score_ = coins_ * COIN_SCORE + static_cast<int>(distance_) * POINTS_PER_METER + rampBonus_;
 
             HandleCollisions();
@@ -421,6 +423,11 @@ void Game::DrawUI() {
                 const int hw = MeasureText(hint, 22);
                 DrawText(hint, (sw - hw) / 2, sh - 60, 22, Fade(RAYWHITE, 0.9f));
             }
+
+            if (snowShader_.DebugMode() != 0) {
+                DrawText(TextFormat("SHADER DEBUG %d  (F5/F6)", snowShader_.DebugMode()),
+                         16, sh - 44, 20, YELLOW);
+            }
             break;
         }
 
@@ -452,6 +459,9 @@ void Game::DrawUI() {
 void Game::Draw() {
     BeginDrawing();
     ClearBackground(kSkyBlue);
+
+    // Feed the snow shader the real camera position every frame.
+    snowShader_.UpdatePerFrame(camera_.camera.position, static_cast<float>(GetTime()));
 
     BeginMode3D(camera_.camera);
     DrawWorld();

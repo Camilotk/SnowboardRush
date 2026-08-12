@@ -65,6 +65,7 @@ add_executable(snowboard_rush
     src/Obstacle.cpp
     src/CameraController.cpp
     src/SnowParticles.cpp
+    src/SnowShader.cpp
     src/SoundManager.cpp
 )
 
