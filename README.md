@@ -1,137 +1,133 @@
-# Snowboard Rush
+# 🏂 Snowboard Rush
 
-A polished, low-poly 3D snowboard endless runner built from scratch with
-**C++17** and **raylib**. Ride downhill, steer between trees and rocks, hit
-ramps, collect coins, and chase your high score as the mountain keeps getting
-faster.
+> **Carve down an endless mountain. Dodge trees. Grab coins. Hit ramps. Crash spectacularly. Chase your high score.**
 
-Every asset — 3D models, materials, textures, and sound effects — is generated
-procedurally or authored as plain-text Wavefront OBJ/MTL, except the ambient
-wind loop, which is a bundled CC-BY 3.0 recording (see
-[`assets/audio/CREDITS.txt`](assets/audio/CREDITS.txt)). There are no external
-art, model, or audio downloads at build time.
+A fast, fun 3D snowboarding endless runner. Built in C++17 with raylib. No bloat. Just pure downhill adrenaline.
 
-## Dependencies
+---
 
-- A C++17 compiler (GCC, Clang, or MSVC)
-- [raylib](https://www.raylib.com/) 4.x or 5.x
-- CMake 3.16+
+## 🎮 What's it like?
 
-On Debian/Ubuntu you can install the dependencies with:
+Drop into a procedurally-generated mountain and **ride as far as you can**. The longer you survive, the faster it gets. Weave between trees and rocks, launch off ramps, grab coins for points, and try not to explode into a snowbank.
+
+### The gameplay loop
+1. **Steer left/right** to dodge obstacles
+2. **Jump over low rocks** (high trees = instant crash)
+3. **Hit ramps** for air time and bonus points
+4. **Collect coins** to boost your score
+5. **Speed increases constantly** — survive or restart and chase a better high score
+
+### Features
+
+✨ **Smooth, responsive controls**  
+Lean left or right — your board follows your input immediately, no lag.
+
+🎬 **Silky-smooth camera**  
+Third-person view that flows with you down the mountain. Never feels floaty or disconnected.
+
+❄️ **Beautiful procedural snow**  
+Falling snow particles + a world-space snow shader make the mountain feel alive. All generated at runtime — no baked textures.
+
+🎵 **Procedurally generated sounds**  
+Jump, crash, coin collect, ramp launch — every sound is synthesized. Ambient wind loop reacts to your speed.
+
+🏔️ **Endless difficulty**  
+Density and speed ramp up smoothly. Early runs are forgiving; late-game runs demand precision.
+
+🎯 **High score chase**  
+Distance + coins = points. Beat your personal best and compete with yourself.
+
+🎥 **Optional: Control with your webcam** (Off by default)  
+Lean left/right in front of your camera. Hop to jump. Adds a fun physicality to the run. Privacy-first: turn it on in Options only if you want it.
+
+---
+
+## 🚀 Get it
+
+### Download pre-built
+
+Grab the latest release: [github.com/Camilotk/SnowboardRush/releases](https://github.com/Camilotk/SnowboardRush/releases)
+
+- **Linux**: `Snowboard_Rush-Linux-x86_64.AppImage` — just make it executable and run
+- **Windows**: `Snowboard_Rush-Windows-x86_64.zip` — extract and run `snowboard_rush.exe`
+
+### Build from source
+
+See [BUILDING.md](BUILDING.md) for detailed instructions.
+
+**Quick start on Linux/macOS:**
 
 ```sh
-sudo apt install build-essential cmake libx11-dev libgl1-mesa-dev
-```
-
-raylib itself can be installed via your package manager (if available), built
-from source, or downloaded as a prebuilt release from
-<https://github.com/raysan5/raylib/releases>.
-
-## Build
-
-### With CMake (recommended)
-
-```sh
+git clone https://github.com/Camilotk/SnowboardRush.git
 cd SnowboardRush
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-      -DRAYLIB_DIR=/path/to/raylib    # e.g. ~/raylib-5.5_linux_amd64
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ./build/snowboard_rush
 ```
 
-If raylib is installed system-wide and discoverable via `pkg-config`, you can
-omit `-DRAYLIB_DIR`. The build system tries `pkg-config` and common install
-locations automatically.
+---
 
-The CMake target defines `ASSETS_PATH` to the project's `assets/` directory and
-also copies `assets/` next to the binary, so the game finds its models no
-matter where it is launched from.
+## 🎮 Controls
 
-### Manual compilation (single command)
+| Action | Key |
+|--------|-----|
+| Steer left | `A` or `←` |
+| Steer right | `D` or `→` |
+| Jump | `Space` |
+| Start game | `Enter` or `Space` (from menu) |
+| Pause | `Esc` |
+| Restart (after crash) | `R` |
 
-From the project root:
+**Webcam (when enabled in Options):**
+- Lean left/right to steer
+- Small hop to jump
+- Toggle with `C` or via Options menu
 
-```sh
-g++ -std=c++17 -O2 -Isrc -I/path/to/raylib/include \
-    -DASSETS_PATH='"assets/"' \
-    src/*.cpp /path/to/raylib/lib/libraylib.a \
-    -o snowboard_rush -lm -lpthread -ldl
-```
+---
 
-> On macOS link against the raylib framework/`.a` and add
-> `-framework Cocoa -framework IOKit -framework OpenGL`. On Windows, link
-> `raylib.lib` and the Win32/OpenGL system libraries.
+## 🛠️ Made with
 
-## Controls
+- **raylib** — Fast, lightweight 3D graphics
+- **C++17** — Modern, efficient
+- **CMake** — Cross-platform builds (Linux, macOS, Windows)
+- **OpenCV** (optional) — Webcam motion tracking
 
-| Key                          | Action                  |
-|------------------------------|-------------------------|
-| `A` / `D` or `←` / `→`       | Steer left / right      |
-| `Space`                      | Jump                    |
-| `R`                          | Restart (after crash)   |
-| `Enter` / `Space`            | Start (from menu)       |
-| `Esc`                        | Quit                    |
+All 3D models and textures are hand-authored or procedurally generated. No heavy asset pipelines. Ships at ~15 MB.
 
-## Game objective
+---
 
-Ride as far as possible down the mountain. Score points by covering distance
-and collecting gold coins. Ramps launch you into the air (bonus points) and let
-you hop over low rocks. Hitting a tree, rock, or barrier ends the run — the
-course speeds up and grows denser the longer you survive.
+## 📚 More details
 
-## Project structure
+- **[TECHNICAL.md](TECHNICAL.md)** — How the game works: rendering, collision, difficulty, webcam system
+- **[BUILDING.md](BUILDING.md)** — Build instructions for all platforms
+- **[LICENSE](LICENSE)** — GNU GPL v3
 
-```text
-SnowboardRush/
-├── CMakeLists.txt
-├── README.md
-├── assets/
-│   └── models/
-│       ├── snowboarder.obj / .mtl   low-poly rider (5 materials)
-│       ├── snowboard.obj  / .mtl    the board
-│       ├── pine_tree.obj  / .mtl    trees (foliage + trunk)
-│       ├── rock.obj       / .mtl    jumpable rocks
-│       ├── ramp.obj       / .mtl    launch ramps
-│       └── coin.obj       / .mtl    spinning collectibles
-└── src/
-    ├── main.cpp            entry point
-    ├── Constants.h         shared tuning values
-    ├── Game.h / .cpp       state machine, loop, rendering, UI, collisions
-    ├── Player.h / .cpp     steering, jump, gravity, crash
-    ├── World.h / .cpp      endless course, spawning, recycling, difficulty
-    ├── Obstacle.h / .cpp   obstacle types + collision config
-    ├── Collectible.h       coin entity
-    ├── Ramp.h              ramp entity
-    ├── CameraController.h/.cpp  smooth third-person follow cam
-    ├── SnowParticles.h/.cpp     ambient falling snow
-    └── SoundManager.h/.cpp      procedural sound effects
-```
+---
 
-## Implementation notes
+## 📝 License
 
-- **Endless level** — the player stays near `z = 0`; the whole world scrolls
-  toward the camera. Entities are tracked by a `coursePos` distance coordinate
-  and recycled once they fall behind the camera, so memory stays bounded.
-- **Collision** — circle-vs-circle in the x-z plane with a vertical
-  "clear height" check, so low rocks can be jumped while trees/barriers cannot.
-- **Difficulty** — speed and obstacle density both ramp up with distance.
-- **Assets** — OBJ files are flat-shaded with per-face normals; MTL `Kd`
-  colors are read directly by raylib. Ground, snow mounds, mountains, barriers,
-  and audio are generated procedurally at startup.
+Snowboard Rush is free software: GPL-3.0-or-later
 
-## License
+Copyright © 2026 Camilo Cunha de Azevedo
 
-Snowboard Rush is free software licensed under the GNU General Public License,
-version 3 or (at your option) any later version.
+Wind audio: CC-BY 3.0 (see [assets/audio/CREDITS.txt](assets/audio/CREDITS.txt))
 
-```
-SPDX-License-Identifier: GPL-3.0-or-later
-```
+---
 
-Copyright (C) 2026 Camilo Cunha de Azevedo.
+## 🤔 FAQ
 
-See [LICENSE](LICENSE) for the full license text, or
-<https://www.gnu.org/licenses/gpl-3.0.html>.
+**Is webcam support required?**  
+Nope! Webcam is optional and OFF by default. Full game works with just keyboard.
 
-The bundled wind loop (`assets/audio/wind.ogg`) is licensed separately under
-CC-BY 3.0; attribution is recorded in [`assets/audio/CREDITS.txt`](assets/audio/CREDITS.txt).
+**Can I play on a low-end PC?**  
+Yep. Raylib is lightweight and the game targets 60 fps on modest hardware.
+
+**Can I mod or extend it?**  
+Yes — it's GPL-licensed. Fork it, modify constants in `src/Constants.h`, tweak difficulty, add new obstacles, whatever.
+
+**How high can scores go?**  
+Theoretically forever, but most players tap out around 500–2000 meters. There's no built-in ceiling.
+
+---
+
+**Enjoy the run! 🏂**
